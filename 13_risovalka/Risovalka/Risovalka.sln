@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Risovalka", "Risovalka\Risovalka.csproj", "{71CD28A8-F483-4287-A380-A27C7E8EF093}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{71CD28A8-F483-4287-A380-A27C7E8EF093}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71CD28A8-F483-4287-A380-A27C7E8EF093}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71CD28A8-F483-4287-A380-A27C7E8EF093}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71CD28A8-F483-4287-A380-A27C7E8EF093}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5E78706C-77B3-4E25-93C1-929C63F19152}
+	EndGlobalSection
+EndGlobal
