@@ -1,0 +1,165 @@
+using System;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Windows.Forms;
+
+namespace ScreenshotUtility
+{
+    public class Form1 : Form
+    {
+        private Button btnCapture;
+        private Button btnSave;
+        private Button btnCopy;
+        private PictureBox pictureBox;
+        private ComboBox cmbFormat;
+        private Label lblInfo;
+
+        private Bitmap currentScreenshot;
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void InitializeComponent()
+        {
+            this.Text = "Утилита скриншота";
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.ClientSize = new Size(900, 600);
+            this.BackColor = Color.FromArgb(240, 240, 240);
+            this.Font = new Font("Segoe UI", 10F);
+
+            btnCapture = CreateButton("Сделать скриншот", 10, 10, 180, 35);
+            btnCapture.Click += BtnCapture_Click;
+
+            btnSave = CreateButton("Сохранить", 200, 10, 120, 35);
+            btnSave.Click += BtnSave_Click;
+
+            btnCopy = CreateButton("В буфер обмена", 330, 10, 150, 35);
+            btnCopy.Click += BtnCopy_Click;
+
+            cmbFormat = new ComboBox();
+            cmbFormat.Location = new Point(500, 14);
+            cmbFormat.Size = new Size(100, 25);
+            cmbFormat.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFormat.Items.AddRange(new object[] { "PNG", "JPG" });
+            cmbFormat.SelectedIndex = 0;
+            this.Controls.Add(cmbFormat);
+
+            lblInfo = new Label();
+            lblInfo.Text = "Нажми кнопку, чтобы сделать снимок всего экрана.";
+            lblInfo.Location = new Point(620, 18);
+            lblInfo.AutoSize = true;
+            this.Controls.Add(lblInfo);
+
+            pictureBox = new PictureBox();
+            pictureBox.Location = new Point(10, 60);
+            pictureBox.Size = new Size(870, 500);
+            pictureBox.BorderStyle = BorderStyle.FixedSingle;
+            pictureBox.BackColor = Color.White;
+            pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+            this.Controls.Add(pictureBox);
+        }
+
+        private Button CreateButton(string text, int x, int y, int width, int height)
+        {
+            var button = new Button();
+            button.Text = text;
+            button.Location = new Point(x, y);
+            button.Size = new Size(width, height);
+            button.BackColor = Color.FromArgb(47, 79, 111);
+            button.ForeColor = Color.White;
+            button.FlatStyle = FlatStyle.Flat;
+            button.FlatAppearance.BorderSize = 0;
+            this.Controls.Add(button);
+            return button;
+        }
+
+        private void BtnCapture_Click(object sender, EventArgs e)
+        {
+            CaptureScreen();
+            pictureBox.Image = currentScreenshot;
+        }
+
+        private void CaptureScreen()
+        {
+            Rectangle bounds = Screen.PrimaryScreen.Bounds;
+
+            if (currentScreenshot != null)
+            {
+                currentScreenshot.Dispose();
+                currentScreenshot = null;
+            }
+
+            currentScreenshot = new Bitmap(bounds.Width, bounds.Height);
+            using (Graphics g = Graphics.FromImage(currentScreenshot))
+            {
+                g.CopyFromScreen(bounds.Left, bounds.Top, 0, 0, bounds.Size);
+            }
+        }
+
+        private void BtnSave_Click(object sender, EventArgs e)
+        {
+            if (currentScreenshot == null)
+            {
+                MessageBox.Show("Сначала сделайте скриншот.");
+                return;
+            }
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Title = "Сохранить скриншот";
+                sfd.Filter = "PNG Image|*.png|JPG Image|*.jpg";
+                sfd.FileName = "screenshot";
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        if (cmbFormat.SelectedItem.ToString() == "PNG")
+                        {
+                            currentScreenshot.Save(sfd.FileName, ImageFormat.Png);
+                        }
+                        else
+                        {
+                            currentScreenshot.Save(sfd.FileName, ImageFormat.Jpeg);
+                        }
+
+                        MessageBox.Show("Скриншот сохранён.");
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Ошибка сохранения: " + ex.Message);
+                    }
+                }
+            }
+        }
+
+        private void BtnCopy_Click(object sender, EventArgs e)
+        {
+            if (currentScreenshot == null)
+            {
+                MessageBox.Show("Сначала сделайте скриншот.");
+                return;
+            }
+
+            try
+            {
+                Clipboard.SetImage(currentScreenshot);
+                MessageBox.Show("Скриншот скопирован в буфер обмена.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка копирования: " + ex.Message);
+            }
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (currentScreenshot != null)
+                currentScreenshot.Dispose();
+
+            base.OnFormClosing(e);
+        }
+    }
+}
