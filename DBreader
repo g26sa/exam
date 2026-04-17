@@ -1,0 +1,154 @@
+using System;
+using System.Data;
+using System.Drawing;
+using System.Windows.Forms;
+using Microsoft.Data.Sqlite;
+
+namespace BdUtility
+{
+    public class Form1 : Form
+    {
+        private TextBox txtConnectionString;
+        private TextBox txtQuery;
+        private Button btnOpen;
+        private Button btnRun;
+        private DataGridView dgvData;
+        private TextBox txtLog;
+
+        private SqliteConnection _connection;
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void InitializeComponent()
+        {
+            this.Text = "Утилита для работы с БД";
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.ClientSize = new Size(1000, 650);
+            this.Font = new Font("Segoe UI", 10F);
+
+            var lblConn = new Label { Text = "Строка подключения:", Location = new Point(10, 10), AutoSize = true };
+            this.Controls.Add(lblConn);
+
+            txtConnectionString = new TextBox
+            {
+                Location = new Point(10, 35),
+                Size = new Size(800, 25),
+                Text = "Data Source=database.db"
+            };
+            this.Controls.Add(txtConnectionString);
+
+            btnOpen = new Button
+            {
+                Text = "Открыть БД",
+                Location = new Point(820, 33),
+                Size = new Size(150, 30)
+            };
+            btnOpen.Click += BtnOpen_Click;
+            this.Controls.Add(btnOpen);
+
+            var lblQuery = new Label { Text = "SQL-запрос:", Location = new Point(10, 70), AutoSize = true };
+            this.Controls.Add(lblQuery);
+
+            txtQuery = new TextBox
+            {
+                Location = new Point(10, 95),
+                Size = new Size(800, 100),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                Text = "SELECT * FROM students;"
+            };
+            this.Controls.Add(txtQuery);
+
+            btnRun = new Button
+            {
+                Text = "Выполнить",
+                Location = new Point(820, 95),
+                Size = new Size(150, 30)
+            };
+            btnRun.Click += BtnRun_Click;
+            this.Controls.Add(btnRun);
+
+            dgvData = new DataGridView
+            {
+                Location = new Point(10, 210),
+                Size = new Size(960, 320),
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+            };
+            this.Controls.Add(dgvData);
+
+            txtLog = new TextBox
+            {
+                Location = new Point(10, 540),
+                Size = new Size(960, 100),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true
+            };
+            this.Controls.Add(txtLog);
+        }
+
+        private void BtnOpen_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                _connection?.Dispose();
+                _connection = new SqliteConnection(txtConnectionString.Text);
+                _connection.Open();
+                Log("Соединение с БД открыто.");
+            }
+            catch (Exception ex)
+            {
+                Log("Ошибка подключения: " + ex.Message);
+            }
+        }
+
+        private void BtnRun_Click(object sender, EventArgs e)
+        {
+            if (_connection == null || _connection.State != ConnectionState.Open)
+            {
+                Log("Сначала открой БД.");
+                return;
+            }
+
+            string sql = txtQuery.Text.Trim();
+
+            try
+            {
+                using var cmd = _connection.CreateCommand();
+                cmd.CommandText = sql;
+
+                if (sql.StartsWith("SELECT", StringComparison.OrdinalIgnoreCase))
+                {
+                    using var adapter = new SqliteDataAdapter(cmd.CommandText, _connection);
+                    var table = new DataTable();
+                    adapter.Fill(table);
+                    dgvData.DataSource = table;
+                    Log("Запрос SELECT выполнен.");
+                }
+                else
+                {
+                    int rows = cmd.ExecuteNonQuery();
+                    Log($"Команда выполнена. Затронуто строк: {rows}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log("Ошибка запроса: " + ex.Message);
+            }
+        }
+
+        private void Log(string message)
+        {
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\r\n");
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            _connection?.Dispose();
+            base.OnFormClosing(e);
+        }
+    }
+}
